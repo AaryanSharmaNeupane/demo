@@ -1,5 +1,5 @@
+import 'package:demoprj/presentation/widgets/scrollable_bars.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:demoprj/dataFromServer.dart';
 import 'package:demoprj/models/DateModel.dart';
@@ -14,75 +14,184 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   DateTime? selectedDate;
+  String? selectedMonth;
+  String? selectedDay;
   List<DateModel> datetimes =
       dataFromServer.map((e) => DateModel.fromJson(e)).toList();
   List listOfTimes = [];
+  final ScrollController _scrollController = ScrollController();
+  final List<Map<String, String>> months = [
+    {"v": "01", "m": "Jan"},
+    {"v": "02", "m": "Feb"},
+    {"v": "03", "m": "Mar"},
+    {"v": "04", "m": "Apr"},
+    {"v": "05", "m": "May"},
+    {"v": "06", "m": "Jun"},
+    {"v": "07", "m": "Jul"},
+    {"v": "08", "m": "Aug"},
+    {"v": "09", "m": "Sep"},
+    {"v": "10", "m": "Oct"},
+    {"v": "11", "m": "Nov"},
+    {"v": "12", "m": "Dec"},
+  ];
 
-  Future<void> _selectDate() async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime(2025, 4, 12),
-      firstDate: DateTime(2025),
-      lastDate: DateTime(2026),
-    );
+  final List<String> days = [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31"
+  ];
 
-    if (pickedDate != null) {
-      final formattedPickedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
-      final DateModel dateTimeModel = datetimes.firstWhere(
-        (dt) => dt.date.contains(formattedPickedDate),
-        orElse: () => DateModel(id: 0, date: '', times: []),
+  onMonthTap(String month) {
+    listOfTimes = [];
+    selectedMonth = month;
+    for (int i = 0; i < datetimes.length; i++) {
+      if (datetimes[i].date.toString().split("-")[1] == selectedMonth) {
+        listOfTimes.add(datetimes[i]);
+      }
+    }
+    setState(() {});
+  }
+
+  onDayTap(String day) {
+    selectedDay = day;
+    if (selectedMonth != null) {
+      var findInListOfTimes = listOfTimes.firstWhere(
+        (element) => element.date.toString().split("-")[2] == selectedDay,
+        orElse: () => null,
       );
-
-      setState(() {
-        selectedDate = pickedDate;
-        listOfTimes = dateTimeModel.times;
-      });
+      if (findInListOfTimes != null) {
+        int index = listOfTimes.indexOf(findInListOfTimes);
+        _scrollController.animateTo(index * 125,
+            duration: const Duration(seconds: 1), curve: Curves.easeInOut);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final formattedDate = selectedDate != null
-        ? DateFormat('yyyy-MM-dd').format(selectedDate!)
-        : 'No date selected';
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dr....'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+        appBar: AppBar(
+          title: const Text('Dr. Conductor '),
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ElevatedButton(
-              onPressed: _selectDate,
-              child: const Text('Date'),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 80,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: () {},
+                      icon: Icon(
+                        Icons.calendar_month,
+                        size: 30,
+                        color: Colors.blueAccent,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: SizedBox(
+                      height: 90,
+                      child: Column(
+                        children: [
+                          ScrollableBars(
+                            data: months,
+                            onPressed: onMonthTap,
+                            isMonth: true,
+                          ),
+                          const Divider(),
+                          ScrollableBars(
+                            data: days,
+                            onPressed: onDayTap,
+                            isMonth: false,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(formattedDate),
-            const SizedBox(height: 16),
             listOfTimes.isNotEmpty
                 ? Expanded(
-                    child: GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        mainAxisSpacing: 12.0,
-                        crossAxisSpacing: 12.0,
-                        childAspectRatio: 2 / 1,
-                      ),
-                      itemCount: listOfTimes.length,
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.only(bottom: 320),
                       itemBuilder: (context, index) {
-                        return TimeContainer(
-                          times: listOfTimes[index],
+                        return Container(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                listOfTimes[index].date,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              GridView.builder(
+                                shrinkWrap: true,
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  mainAxisSpacing: 12.0,
+                                  crossAxisSpacing: 12.0,
+                                  childAspectRatio: 2 / 1,
+                                ),
+                                itemCount: listOfTimes[index].times.length,
+                                itemBuilder: (context, j) {
+                                  return TimeContainer(
+                                    times: listOfTimes[index].times[j],
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         );
                       },
+                      itemCount: listOfTimes.length,
                     ),
                   )
                 : const SizedBox.shrink(),
           ],
-        ),
-      ),
-    );
+        ));
   }
 }
