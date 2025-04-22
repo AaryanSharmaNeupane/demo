@@ -1,3 +1,4 @@
+import 'package:demoprj/presentation/pages/stepper_page.dart';
 import 'package:demoprj/presentation/widgets/scrollable_bars.dart';
 import 'package:flutter/material.dart';
 
@@ -192,6 +193,14 @@ class _HomeState extends State<Home> {
                   )
                 : const SizedBox.shrink(),
           ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => const StepperPage(),
+            ));
+          },
+          child: const Text("Stepper"),
         ));
   }
 }
